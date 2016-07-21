@@ -1,0 +1,15 @@
+# Get data from ExploreCourses API
+Python parse_EC_API.py > ../ec_data/output_20152016.txt
+Python parse_EC_API.py 20142015 > ../ec_data/output_20142015.txt
+Python parse_EC_API.py 20132014 > ../ec_data/output_20132014.txt
+Python parse_EC_API.py 20122013 > ../ec_data/output_20122013.txt
+Python parse_EC_API.py 20112012 > ../ec_data/output_20112012.txt
+cat ../ec_data/output_20112012.txt > ../ec_data/output_allcourses.txt
+tail -n +2 ../ec_data/output_20122013.txt >> ../ec_data/output_allcourses.txt
+tail -n +2 ../ec_data/output_20132014.txt >> ../ec_data/output_allcourses.txt
+tail -n +2 ../ec_data/output_20142015.txt >> ../ec_data/output_allcourses.txt
+tail -n +2 ../ec_data/output_20152016.txt >> ../ec_data/output_allcourses.txt
+
+# Stream only the rows corresponding to a certain quarter, for input into a matrix representing concurrent classes
+# Quarter is in row 10, and is given the value of 1122 + k, where k = # of quarters after Fall 2011-12.
+awk '$10 == 1122' ../ec_data/output_allcourses.txt
