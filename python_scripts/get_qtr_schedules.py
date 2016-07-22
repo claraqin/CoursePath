@@ -6,6 +6,7 @@ from collections import namedtuple
 import sys
 import networkx as nx
 from itertools import chain, combinations
+import networkx as nx
 
 weekday_replacements = [
 	['Monday', '1 '],
@@ -77,7 +78,6 @@ for line in sys.stdin:
 
 clique_list = list(nx.find_cliques(G))
 
-
 # Print all possible schedules consisting of less than 8 courses
 # Yes, this assumes a cap on the number of courses that a student may take in a quarter
 n = 0
@@ -88,6 +88,8 @@ for i in range(len(clique_list)):
 		n += 1
 
 print(n)
+
+
 
 
 

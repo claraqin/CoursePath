@@ -1,32 +1,3 @@
-# Get data from ExploreCourses API
-Python parse_EC_API.py 20152016 > ../ec_data/output_20152016.txt
-Python parse_EC_API.py 20142015 > ../ec_data/output_20142015.txt
-Python parse_EC_API.py 20132014 > ../ec_data/output_20132014.txt
-Python parse_EC_API.py 20122013 > ../ec_data/output_20122013.txt
-Python parse_EC_API.py 20112012 > ../ec_data/output_20112012.txt
-cat ../ec_data/output_20112012.txt > ../ec_data/output_allcourses.txt
-tail -n +2 ../ec_data/output_20122013.txt >> ../ec_data/output_allcourses.txt
-tail -n +2 ../ec_data/output_20132014.txt >> ../ec_data/output_allcourses.txt
-tail -n +2 ../ec_data/output_20142015.txt >> ../ec_data/output_allcourses.txt
-tail -n +2 ../ec_data/output_20152016.txt >> ../ec_data/output_allcourses.txt
-
-# Test get_qtr_schedules.py on small subset
-tail -n +2 ../ec_data/output_small.txt | Python get_qtr_schedules.py
-
-# Stream only the rows corresponding to a certain quarter, for input into a matrix representing concurrent classes
-# Quarter is in row 10, and is given the value of 1122 + k, where k = 2 * (no. of quarters after Fall 2011-12).
-awk '$10 == 1122' ../ec_data/output_allcourses.txt
-
-# Which schedules are None?
-awk -F "\t" '{if ($16 == "None" || $17 == "None" || $18 == "None") print}' ../ec_data/output_allcourses.txt | wc -l #474378
-cat ../ec_data/output_allcourses.txt | wc -l #532344, so 89% of courses have a None in their times!
-awk -F "\t" '{if ($16 != "None" && $17 != "None" && $18 != "None") print}' ../ec_data/output_allcourses.txt > ../ec_data/output_timecourses.txt
-
-
-
-# Test get_qtr_schedules.py on dummy sets
-
-tail -n +2 ../ec_data/output_small.txt | Python get_qtr_schedules.py > schedules_small.txt # 9 lines, 0.5s -> 53 lines
-
-awk '$10 == 1164 && $3 == "BIO"' ../ec_data/output_timecourses.txt > ../ec_data/small_bio.txt # 53 lines
-cat ../ec_data/small_bio.txt | Python get_qtr_schedules.py > ../ec_data/schedules_small_bio.txt # 53 lines, 8s -> 2,983,357 lines
+version https://git-lfs.github.com/spec/v1
+oid sha256:979bb77fec8d7a1fed589033963c6e1793982861028771778597bb38dae9012d
+size 1911
