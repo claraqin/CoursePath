@@ -67,22 +67,23 @@ prev_courses = {}
 		#if conflicts with pc: # Alternatively, if doesn't conflict then just look for cliques instead of independent sets later.
 			G.add_edge(pc, cc_id)
 
+print(list(find_cliques(G)))
 
 
-days1 = 'Tuesday|Thursday'
-start_time1 = '10:00:00 AM'
-end_time1 = '11:50:00 AM'
+# days1 = 'Tuesday|Thursday'
+# start_time1 = '10:00:00 AM'
+# end_time1 = '11:50:00 AM'
 
-days2 = 'Tuesday|Thursday'
-start_time2 = '11:00:00 AM'
-end_time2 = '12:50:00 PM'
+# days2 = 'Tuesday|Thursday'
+# start_time2 = '11:00:00 AM'
+# end_time2 = '12:50:00 PM'
 
-schedule1 = writeSchedule(days1, start_time1, end_time1)
-schedule2 = writeSchedule(days2, start_time2, end_time2)
+# schedule1 = writeSchedule(days1, start_time1, end_time1)
+# schedule2 = writeSchedule(days2, start_time2, end_time2)
 
-print(schedule1)
-print(schedule2)
-print(checkConflicting(schedule1, schedule2))
+# print(schedule1)
+# print(schedule2)
+# print(checkConflicting(schedule1, schedule2))
 
 
 
