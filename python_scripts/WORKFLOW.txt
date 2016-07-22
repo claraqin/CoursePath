@@ -1,5 +1,5 @@
 # Get data from ExploreCourses API
-Python parse_EC_API.py > ../ec_data/output_20152016.txt
+Python parse_EC_API.py 20152016 > ../ec_data/output_20152016.txt
 Python parse_EC_API.py 20142015 > ../ec_data/output_20142015.txt
 Python parse_EC_API.py 20132014 > ../ec_data/output_20132014.txt
 Python parse_EC_API.py 20122013 > ../ec_data/output_20122013.txt
