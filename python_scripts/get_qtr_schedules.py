@@ -4,7 +4,8 @@
 from datetime import datetime
 from collections import namedtuple
 import sys
-# import networkx as nx
+import networkx as nx
+from itertools import chain, combinations
 
 weekday_replacements = [
 	['Monday', '1 '],
@@ -40,18 +41,25 @@ def checkConflicting(schedule1, schedule2): # Schedule is a list of tuples
 	# If all for-loops completed and still no conflicting blocks,
 	return False
 
-# G = nx.Graph()
+G = nx.Graph()
 
 prev_courses = {}
 
-# for line in sys.stdin:
-# 	# get cc_id = course_id + class_id
-# 	# get days
-# 	# get start time
-# 	# get end time
+for line in sys.stdin:
+	parts = line.strip().split('\t')
+	cc_id = parts[1] + '-' + parts[11]
+	days = parts[17]
+	start_time = parts[15]
+	end_time = parts[16]
 
-#	if cc_id not in prev_courses.keys(): proceed
-#	else next input line
+	# If any time parameters are None, skip
+	# Since only subsets of output_timecourses.txt should be here, this shouldn't happen anyway
+	if (days == 'None') or (start_time == 'None') or (end_time == 'None'):
+		continue
+
+	# If the course has already been entered, skip ("continue")
+	if cc_id in prev_courses.keys():
+		continue
 	
 	# Get schedule
 	schedule = writeSchedule(days, start_time, end_time)
@@ -63,28 +71,23 @@ prev_courses = {}
 
 	# Loop through all prev. courses;
 	# Add edge between current course and any course with which it conflicts
-	for pc in prev_courses.keys():
-		#if conflicts with pc: # Alternatively, if doesn't conflict then just look for cliques instead of independent sets later.
-			G.add_edge(pc, cc_id)
+	for pcc_id in prev_courses.keys():
+		if checkConflicting(prev_courses[pcc_id], schedule):
+			G.add_edge(pcc_id, cc_id)
 
-print(list(find_cliques(G)))
+clique_list = list(nx.find_cliques(G))
 
 
-# days1 = 'Tuesday|Thursday'
-# start_time1 = '10:00:00 AM'
-# end_time1 = '11:50:00 AM'
+# Print all possible schedules consisting of less than 8 courses
+# Yes, this assumes a cap on the number of courses that a student may take in a quarter
+n = 0
+for i in range(len(clique_list)):
+	offset = (0, 1)[i > 0] # To avoid printing multiple null sets
+	for z in chain.from_iterable(combinations(clique_list[i], r) for r in range(offset,8)): # instead of range(len(clique_list[0]+1))
+		print('|'.join(list(z)))
+		n += 1
 
-# days2 = 'Tuesday|Thursday'
-# start_time2 = '11:00:00 AM'
-# end_time2 = '12:50:00 PM'
-
-# schedule1 = writeSchedule(days1, start_time1, end_time1)
-# schedule2 = writeSchedule(days2, start_time2, end_time2)
-
-# print(schedule1)
-# print(schedule2)
-# print(checkConflicting(schedule1, schedule2))
-
+print(n)
 
 
 
