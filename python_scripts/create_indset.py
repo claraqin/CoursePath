@@ -1,9 +1,10 @@
-# Takes in lines from EC output, and returns large JSON file representing all pathways
+# Takes in lines representing all relevant classes in a given quarter, and returns all possible 
+# class schedules in the quarter (i.e. independent sets in the class co-occurrence network)
 
 from datetime import datetime
 from collections import namedtuple
 import sys
-# import networkx
+# import networkx as nx
 
 weekday_replacements = [
 	['Monday', '1 '],
@@ -22,25 +23,51 @@ def writeSchedule(days, start_time, end_time):
 		schedule.append((day + start_time, day + end_time))
 	return schedule
 
-def checkConflictingCourse(schedule1, schedule2): # Schedule is a list of tuples
+def checkConflicting(schedule1, schedule2): # Schedule is a list of tuples
 	for block1 in schedule1:
 		start1 = datetime.strptime(block1[0], "%w %H:%M:%S %p")
 		end1 = datetime.strptime(block1[1], "%w %H:%M:%S %p")
 		for block2 in schedule2:
 			start2 = datetime.strptime(block2[0], "%w %H:%M:%S %p")
 			end2 = datetime.strptime(block2[1], "%w %H:%M:%S %p")
-			if checkConflicting(start1, end1, start2, end2):
+
+			# If the later start time is before the earlier end time, return True
+			later_start = max(start1, start2)
+			earlier_end = min(end1, end2)
+			if later_start < earlier_end:
 				return True
+
 	# If all for-loops completed and still no conflicting blocks,
 	return False
 
-def checkConflicting(start_dt1, end_dt1, start_dt2, end_dt2):
-	later_start = max(start_dt1, start_dt2)
-	earlier_end = min(end_dt1, end_dt2)
-	return earlier_end > later_start
+# G = nx.Graph()
+
+prev_courses = {}
+
+# for line in sys.stdin:
+# 	# get cc_id = course_id + class_id
+# 	# get days
+# 	# get start time
+# 	# get end time
+
+#	if cc_id not in prev_courses.keys(): proceed
+#	else next input line
+	
+	# Get schedule
+	schedule = writeSchedule(days, start_time, end_time)
+
+	# Add to dictionary of prev_courses, with schedule as value
+	prev_courses[cc_id] = schedule
+
+	G.add_node(cc_id)
+
+	# Loop through all prev. courses;
+	# Add edge between current course and any course with which it conflicts
+	for pc in prev_courses.keys():
+		#if conflicts with pc: # Alternatively, if doesn't conflict then just look for cliques instead of independent sets later.
+			G.add_edge(pc, cc_id)
 
 
-prev_schedules = []
 
 days1 = 'Tuesday|Thursday'
 start_time1 = '10:00:00 AM'
@@ -55,23 +82,8 @@ schedule2 = writeSchedule(days2, start_time2, end_time2)
 
 print(schedule1)
 print(schedule2)
-print(checkConflictingCourse(schedule1, schedule2))
+print(checkConflicting(schedule1, schedule2))
 
 
-
-# for w_str, w_n in weekday_replacements:
-# 	days2 = days2.replace(w_str, w_n) 
-
-# start_dts2 = [day + start_time2 for day in days2.split('|')]
-# end_dts2 = [day + end_time2 for day in days2.split('|')]
-
-# print(start_dts2)
-
-# for schedule in prev_schedules:
-
-# 	for block in schedule:
-
-#for line in sys.stdin:
-	# somehow get days and start_time and end_time
 
 
