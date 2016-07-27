@@ -71,9 +71,9 @@ for line in sys.stdin:
 	G.add_node(cc_id)
 
 	# Loop through all prev. courses;
-	# Add edge between current course and any course with which it conflicts
+	# Add edge between current course and any course with which it DOESN'T conflict
 	for pcc_id in prev_courses.keys():
-		if checkConflicting(prev_courses[pcc_id], schedule):
+		if not checkConflicting(prev_courses[pcc_id], schedule):
 			G.add_edge(pcc_id, cc_id)
 
 clique_list = list(nx.find_cliques(G))
