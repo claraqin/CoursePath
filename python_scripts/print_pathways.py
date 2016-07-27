@@ -1,6 +1,8 @@
 # Recursively prints all pathways possible in 2011-2016 given a set of relevant courses.
 # An extension of get_qtr_schedules.py
 
+########## Currently 'offset' has been replaced by 1
+
 from datetime import datetime
 import re
 import sys
@@ -11,7 +13,10 @@ allcourses = []
 for line in sys.stdin:
 	allcourses.append(line)
 
-# allcourses = open("../ec_data/output_timecourses.txt", 'r')
+# Delimiters to represent pathways 
+# delim1 separates quarters, delim2 separates course-class IDs within the same quarter
+delim1 = '|'
+delim2 = ','
 
 max_courses_per_qtr = 6
 
@@ -55,79 +60,87 @@ def checkConflicting(schedule1, schedule2): # Schedule is a list of tuples
 
 
 def searchPath(Path, startyear, t, T):
-	print(Path)
-	prev_cc_id = re.findall(path_split_pattern, Path)
-	prev_courses = [i.split('-')[0] for i in prev_cc_id]
+	step = Path.split('|')[-1] # The step (quarter schedule) that was taken to get here
 
-	correct_term_id = str((startyear - 1899) * 10 + [2,4,6][(t-1)%3])
-
-	G = nx.Graph()
-
-	cc_schedules = {}
-
-	for course in allcourses:
-		parts = course.strip().split('\t')
-		term_id = parts[9]
-
-		# If incorrect term, skip
-		if term_id != correct_term_id:
-			continue
-
-		# Else pull the rest of info from line
-		course_id = parts[1]
-		cc_id = parts[1] + '-' + parts[11]
-		days = parts[17]
-		start_time = parts[15]
-		end_time = parts[16]
-
-
-		# If any time parameters are None, skip
-		# Since only subsets of output_timecourses.txt should be here, this shouldn't happen anyway
-		if (days == 'None') or (start_time == 'None') or (end_time == 'None'):
-			continue
-
-		# If the course has already been entered, skip ("continue")
-		if cc_id in cc_schedules.keys():
-			continue
-		
-		if course_id in prev_courses:
-			continue
-		##### TO DO: If course's prereqs have not been met, or if it is a repetition of a 
-		#####        NON-REPEATABLE course, then skip.
-
-		# Get schedule
-		schedule = writeSchedule(days, start_time, end_time)
-
-		# Add to dictionary of cc_schedules, with schedule as value
-		cc_schedules[cc_id] = schedule
-
-		# Create node for current course
-		G.add_node(cc_id)
-
-		# Loop through all prev. courses;
-		# Add edge between current course and any course with which it DOESN'T conflict
-		for cc_id0 in cc_schedules.keys():
-			if not checkConflicting(cc_schedules[cc_id0], schedule):
-				G.add_edge(cc_id0, cc_id)
-
-	print("Nodes:" + str(len(G)))
-
-	clique_list = list(nx.find_cliques(G))
-
-	# Either continue to next recursion, or if t==T, print all
-	if t==(T-1): ########### T-1 is only a temporary fix - I need to fix my recursive step
-		for i in range(len(clique_list)):
-			offset = (0, 1)[i > 0] # To avoid printing multiple null sets
-			for z in chain.from_iterable(combinations(clique_list[i], r) for r in range(offset,max_courses_per_qtr)): # instead of range(len(clique_list[0]+1))
-				pass
-				#print(Path + '\t' + '|'.join(list(z)))
+	# If this is the final quarter, just print what you have, capped with "branches:None"
+	if t == T:
+		print('\t'*t + "added:" + step + "\tpathway:" + Path + "\tt:" + str(t) + "\tT:" + str(T) + "\tbranches:None")
+	
+	# Otherwise, print what you have and run the next recursion
 	else:
+		print('\t'*t + "added:" + step + "\tpathway:" + Path + "\tt:" + str(t) + "\tT:" + str(T) + "\tbranches:")
+
+		prev_cc_id = re.findall(path_split_pattern, Path)
+		prev_courses = [i.split('-')[0] for i in prev_cc_id]
+
+		correct_term_id = str((startyear - 1899) * 10 + [2,4,6][(t-1)%3])
+
+		G = nx.Graph()
+
+		cc_schedules = {}
+
+		for course in allcourses:
+			parts = course.strip().split('\t')
+			term_id = parts[9]
+
+			# If incorrect term, skip
+			if term_id != correct_term_id:
+				continue
+
+			# Else pull the rest of info from line
+			course_id = parts[1]
+			cc_id = parts[1] + '-' + parts[11]
+			component = parts[12]
+			days = parts[17]
+			start_time = parts[15]
+			end_time = parts[16]
+
+			# If component is DIS, skip ######## MAY WANT TO MAKE MORE SPECIFIC LATER #####
+			if component == 'DIS':
+				continue
+
+			# If any time parameters are None, skip
+			# Since only subsets of output_timecourses.txt should be here, this shouldn't happen anyway
+			if (days == 'None') or (start_time == 'None') or (end_time == 'None'):
+				continue
+
+			if course_id in prev_courses:
+				continue
+			##### TO DO: If course's prereqs have not been met, or if it is a repetition of a 
+			#####        NON-REPEATABLE course, then skip.
+
+			# If the course-class has already been considered, skip
+			if cc_id in cc_schedules.keys():
+				continue
+
+			# Get schedule
+			schedule = writeSchedule(days, start_time, end_time)
+
+			# Add to dictionary of cc_schedules, with schedule as value
+			cc_schedules[cc_id] = schedule
+
+			# Create node for current course
+			G.add_node(cc_id)
+
+			# Loop through all prev. courses;
+			# Add edge between current course and any course with which it DOESN'T conflict
+			for cc_id0 in cc_schedules.keys():
+				if not checkConflicting(cc_schedules[cc_id0], schedule):
+					G.add_edge(cc_id0, cc_id)
+
+		#print("Nodes:" + str(len(G)))
+
+		clique_list = list(nx.find_cliques(G))
+
 		for i in range(len(clique_list)):
 			offset = (0, 1)[i > 0] # To avoid printing multiple null sets
-			for z in chain.from_iterable(combinations(clique_list[i], r) for r in range(offset,max_courses_per_qtr)): # instead of range(len(clique_list[0]+1))
-				Path_next = Path + '\t' + '|'.join(list(z))
+			for z in chain.from_iterable(combinations(clique_list[i], r) for r in range(1,max_courses_per_qtr)): # instead of range(len(clique_list[0]+1))
+				step_next = delim2.join(list(z))
+				Path_next = Path + delim1 + step_next
+				# print(Path)
+				# print(step_next)
+				# print(Path_next)
 				searchPath(Path_next, startyear, t+1, T)
 
-searchPath('', 2015, 1, 3)
-
+searchPath('', 2015, 0, 3)
 
