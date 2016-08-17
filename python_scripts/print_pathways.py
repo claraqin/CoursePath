@@ -1,14 +1,34 @@
 # Recursively prints all pathways possible in 2011-2016 given a set of relevant courses.
 # An extension of get_qtr_schedules.py
 
-########## Currently 'offset' has been replaced by 1
+########## Currently starts in 2015 and goes for 3 quarters
+
+########## Currently 'offset' has been replaced by 1, 
+########## i.e. students cannot take "empty" quarters
+
+########## Currently skips any 'DIS' sections
+
+########## Currently skips any course repeats, even potentially repeatable ones
 
 from datetime import datetime
 import re
 import sys
+import json
 import networkx as nx
 from itertools import chain, combinations
 
+# Load dictionaries:
+# Note that req_dict is given in terms of course names (not IDs), which is why we require
+# the course_name2id dictionary
+with open('course_dict.json','r') as f:
+	course_id2name = json.load(f)
+
+course_name2id = dict((v,k) for k,v in course_id2name.items())
+
+with open('req_dict.json','r') as f:
+	req_dict = json.load(f)
+
+# Read input (relevant courses only) for processing via recursive searchPath function
 allcourses = []
 for line in sys.stdin:
 	allcourses.append(line)
@@ -32,7 +52,7 @@ weekday_replacements = [
 	['Sunday', '0 ']
 ]
 
-# Write schedule as a list of tuples. Each tuple is start_time, end_time:
+# Write weekly schedule as a list of tuples. Each tuple is start_time, end_time:
 def writeSchedule(days, start_time, end_time):
 	for w_str, w_n in weekday_replacements:
 		days = days.replace(w_str, w_n)
@@ -41,7 +61,7 @@ def writeSchedule(days, start_time, end_time):
 		schedule.append((day + start_time, day + end_time))
 	return schedule
 
-def checkConflicting(schedule1, schedule2): # Schedule is a list of tuples
+def checkConflicting(schedule1, schedule2): # Weekly schedule is a list of tuples
 	for block1 in schedule1:
 		start1 = datetime.strptime(block1[0], "%w %H:%M:%S %p")
 		end1 = datetime.strptime(block1[1], "%w %H:%M:%S %p")
@@ -58,17 +78,18 @@ def checkConflicting(schedule1, schedule2): # Schedule is a list of tuples
 	# If all for-loops completed and still no conflicting blocks,
 	return False
 
-
 def searchPath(Path, startyear, t, T):
 	step = Path.split('|')[-1] # The step (quarter schedule) that was taken to get here
 
-	# If this is the final quarter, just print what you have, capped with "branches:None"
+	# Print the current Path:
+	print('\t'*t + "added:" + step + "\tpathway:" + Path + "\tt:" + str(t) + "\tT:" + str(T))
+
+	# If this is the final quarter, end this recursion branch
 	if t == T:
-		print('\t'*t + "added:" + step + "\tpathway:" + Path + "\tt:" + str(t) + "\tT:" + str(T) + "\tbranches:None")
+		pass
 	
-	# Otherwise, print what you have and run the next recursion
+	# Otherwise, run the next recursion
 	else:
-		print('\t'*t + "added:" + step + "\tpathway:" + Path + "\tt:" + str(t) + "\tT:" + str(T) + "\tbranches:")
 
 		prev_cc_id = re.findall(path_split_pattern, Path)
 		prev_courses = [i.split('-')[0] for i in prev_cc_id]
@@ -89,13 +110,14 @@ def searchPath(Path, startyear, t, T):
 
 			# Else pull the rest of info from line
 			course_id = parts[1]
+			course_name = parts[2] + ' ' + parts[3]
 			cc_id = parts[1] + '-' + parts[11]
 			component = parts[12]
 			days = parts[17]
 			start_time = parts[15]
 			end_time = parts[16]
 
-			# If component is DIS, skip ######## MAY WANT TO MAKE MORE SPECIFIC LATER #####
+			# If component is DIS, skip ######## MAY WANT TO MAKE MORE PRECISE LATER #####
 			if component == 'DIS':
 				continue
 
@@ -106,17 +128,24 @@ def searchPath(Path, startyear, t, T):
 
 			if course_id in prev_courses:
 				continue
-			##### TO DO: If course's prereqs have not been met, or if it is a repetition of a 
-			#####        NON-REPEATABLE course, then skip.
+			##### TO DO: Should only do this for NON-REPEATABLE COURSES
+
+			prereqs = req_dict[course_name][0]
+
+			# If any pre-requisites have not been met, skip
+			if not all(course_name2id[prereq] in prev_courses for prereq in prereqs):
+				# print(course_name, end='\t')
+				# print("PREREQS NOT MET")
+				continue
 
 			# If the course-class has already been considered, skip
 			if cc_id in cc_schedules.keys():
 				continue
 
-			# Get schedule
+			# Get weekly schedule
 			schedule = writeSchedule(days, start_time, end_time)
 
-			# Add to dictionary of cc_schedules, with schedule as value
+			# Add to dictionary of cc_schedules, with weekly schedule as value
 			cc_schedules[cc_id] = schedule
 
 			# Create node for current course
@@ -132,15 +161,16 @@ def searchPath(Path, startyear, t, T):
 
 		clique_list = list(nx.find_cliques(G))
 
+		# For each clique (each possible student schedule)
 		for i in range(len(clique_list)):
 			offset = (0, 1)[i > 0] # To avoid printing multiple null sets
 			for z in chain.from_iterable(combinations(clique_list[i], r) for r in range(1,max_courses_per_qtr)): # instead of range(len(clique_list[0]+1))
 				step_next = delim2.join(list(z))
 				Path_next = Path + delim1 + step_next
-				# print(Path)
-				# print(step_next)
-				# print(Path_next)
+
+				# Recurse!
 				searchPath(Path_next, startyear, t+1, T)
 
+# Run the recusive function
 searchPath('', 2015, 0, 3)
 

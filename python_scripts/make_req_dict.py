@@ -2,7 +2,6 @@
 
 import json
 import sys
-from pprint import pprint
 
 req_dict = {}
 
