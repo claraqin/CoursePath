@@ -1,12 +1,14 @@
 # Recursively prints all pathways possible in 2011-2016 given a set of relevant courses.
 # An extension of get_qtr_schedules.py
 
-########## Currently starts in 2015 and goes for 12 quarters
+########## Currently starts in 2011 and goes for 12 quarters
 
 ########## Currently 'offset' has been replaced by 1, 
 ########## i.e. students cannot take "empty" quarters
 
 ########## Currently skips any 'DIS' sections
+
+########## Does not yet check co-requisites
 
 ########## Currently skips any course repeats, even potentially repeatable ones
 
@@ -28,7 +30,7 @@ from pprint import pprint
 max_courses_per_qtr = 6
 
 # Load dictionaries:
-with open('coursename2id_dict.json', 'r') as f:
+with open('course_name2id_dict.json', 'r') as f:
 	course_name2id = json.load(f)
 
 with open('req_dict.json','r') as f:
@@ -139,17 +141,16 @@ def searchPath(startyear, t, T, branch_id, Path):
 			if (days == 'None') or (start_time == 'None') or (end_time == 'None'):
 				continue
 
+			# Tentative: If course has been taken before, do not take again
 			if course_id in prev_courses:
 				continue
 			##### TO DO: Should only do this for NON-REPEATABLE COURSES
 
-			prereqs = req_dict[course_name][0]
-
 			# If any pre-requisites have not been met, skip
+			prereqs = req_dict[course_id][0]
 			if not all(course_name2id[prereq] in prev_courses for prereq in prereqs):
-				# print(course_name, end='\t')
-				# print("PREREQS NOT MET")
 				continue
+			##### TO DO: Need to implement co-req check as well
 
 			# If the course-class has already been considered, skip
 			if cc_id in cc_schedules:
@@ -192,5 +193,5 @@ def searchPath(startyear, t, T, branch_id, Path):
 				step_id = step_id + 1
 
 # Run the recursive function
-searchPath(2015, 0, 12, '', '')
+searchPath(2011, 0, 12, '', '')
 
