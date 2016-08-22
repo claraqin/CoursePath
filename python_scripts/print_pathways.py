@@ -30,10 +30,10 @@ from pprint import pprint
 max_courses_per_qtr = 6
 
 # Load dictionaries:
-with open('course_name2id_dict.json', 'r') as f:
+with open('../dict/course_name2id_dict.json', 'r') as f:
 	course_name2id = json.load(f)
 
-with open('req_dict.json','r') as f:
+with open('../dict/req_dict.json','r') as f:
 	req_dict = json.load(f)
 
 # Read input (relevant courses only) for processing via recursive searchPath function

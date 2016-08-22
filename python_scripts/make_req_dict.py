@@ -5,7 +5,7 @@
 import json
 import sys
 
-with open('course_name2id_dict.json', 'r') as f:
+with open('../dict/course_name2id_dict.json', 'r') as f:
 	course_name2id = json.load(f)
 
 req_dict = {}
@@ -24,5 +24,5 @@ for line in sys.stdin:
 		print('Warning: Course name-to-ID dict was not made with reference to ' + entry['code'])
 		pass
 
-with open('req_dict.json', 'w') as f:
+with open('../dict/req_dict.json', 'w') as f:
 	json.dump(req_dict, f)
