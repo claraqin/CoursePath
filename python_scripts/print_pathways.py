@@ -10,6 +10,8 @@
 
 ########## Currently skips any course repeats, even potentially repeatable ones
 
+########## Currently only outputs [current qtr, max qtr, path]
+
 from datetime import datetime
 import re
 import sys
@@ -79,10 +81,11 @@ def checkConflicting(schedule1, schedule2): # Weekly schedule is a list of tuple
 	return False
 
 def searchPath(Path, startyear, t, T):
-	step = Path.split('|')[-1] # The step (quarter schedule) that was taken to get here
+	# step = Path.split('|')[-1] # The step (quarter schedule) that was taken to get here
 
 	# Print the current Path:
-	print('\t'*t + "added:" + step + "\tpathway:" + Path + "\tt:" + str(t) + "\tT:" + str(T))
+	print('\t'*t + "t:" + str(t) + "\tT:" + str(T) + "\tpathway:" + Path)
+	#print('\t'*t + "added:" + step + "\tpathway:" + Path + "\tt:" + str(t) + "\tT:" + str(T))
 
 	# If this is the final quarter, end this recursion branch
 	if t == T:
