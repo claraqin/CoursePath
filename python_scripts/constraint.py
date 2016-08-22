@@ -33,6 +33,33 @@ class Or(object):
 	def is_satisfied(self, sched):
 		return(any(constraint.is_satisfied(sched) for constraint in self.constraints))
 
+# Input is the JSON output of format_reqs_json.py, which is used upon a file denoting
+# the degree requirements.
+# Output is a Constraint-class object.
+def parse_course_reqs(lines):
+	for line in lines:
+		entry = line.strip()
+		reqs_this_level = []
+
+		# If the entry is not denoting a start- or end-bracket
+		if entry not in ['AND{','OR{','}']:
+			reqs_this_level.append(entry)
+
+		elif entry == 'AND{':
+			reqs_this_level = 
+
+		elif entry == 'OR{':
+
+		else entry == '}':
+			return((Takes(x)) for x in courses_this_level)
+
+	# If somehow the loop ends before the function can return anything,
+	# then there were too few end-brackets
+	quit('More start-brackets than end-brackets in file denoting degree requirements')
+
+
+
+
 # Test those classes
 # math = 'Math'
 # physics = 'Physics'
