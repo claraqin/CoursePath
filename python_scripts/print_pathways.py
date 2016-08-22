@@ -22,6 +22,7 @@ import sys
 import json
 import networkx as nx
 from itertools import chain, combinations
+from pprint import pprint
 
 # Student can take no more than this number of courses in a quarter
 max_courses_per_qtr = 6
@@ -34,9 +35,16 @@ with open('req_dict.json','r') as f:
 	req_dict = json.load(f)
 
 # Read input (relevant courses only) for processing via recursive searchPath function
-allcourses = []
+# Arrange courses by term (using dict structure) so each iteration does not have to search through the 
+# entire allcourses
+allcourses_by_term = {}
 for line in sys.stdin:
-	allcourses.append(line)
+	term_id = line.split('\t')[9]
+	if term_id in allcourses_by_term:
+		allcourses_by_term[term_id].append(line)
+	else:
+		allcourses_by_term[term_id] = [line]
+
 
 # Delimiters to represent pathways 
 # delim1 separates quarters, delim2 separates course-class IDs within the same quarter
@@ -98,18 +106,19 @@ def searchPath(startyear, t, T, branch_id, Path):
 		prev_cc_id = re.findall(path_split_pattern, Path)
 		prev_courses = [i.split('-')[0] for i in prev_cc_id]
 
-		correct_term_id = str((startyear - 1899) * 10 + [2,4,6][(t-1)%3])
+		this_term_id = str((startyear - 1899) * 10 + [2,4,6][(t-1)%3])
 
 		G = nx.Graph()
 
 		cc_schedules = {}
 
-		for course in allcourses:
+		# For all courses in this term
+		for course in allcourses_by_term[this_term_id]:
 			parts = course.strip().split('\t')
 			term_id = parts[9]
 
 			# If incorrect term, skip
-			if term_id != correct_term_id:
+			if term_id != this_term_id:
 				continue
 
 			# Else pull the rest of info from line
@@ -143,7 +152,7 @@ def searchPath(startyear, t, T, branch_id, Path):
 				continue
 
 			# If the course-class has already been considered, skip
-			if cc_id in cc_schedules.keys():
+			if cc_id in cc_schedules:
 				continue
 
 			# Get weekly schedule
@@ -158,7 +167,7 @@ def searchPath(startyear, t, T, branch_id, Path):
 			# Loop through all prev. courses;
 			# Add edge between current course and any course with which it DOESN'T conflict,
 			# and with which it does NOT have the same course ID
-			for cc_id0 in cc_schedules.keys():
+			for cc_id0 in cc_schedules:
 				if not checkConflicting(cc_schedules[cc_id0], schedule) and (course_id != cc_id0.split('-')[0]):
 					G.add_edge(cc_id0, cc_id)
 
