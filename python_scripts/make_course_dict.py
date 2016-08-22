@@ -1,4 +1,5 @@
 # Makes course ID dictionary from ExploreCourses data
+# This is an ID-to-name dictionary
 
 import json
 import sys

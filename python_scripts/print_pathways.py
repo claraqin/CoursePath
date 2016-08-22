@@ -1,7 +1,7 @@
 # Recursively prints all pathways possible in 2011-2016 given a set of relevant courses.
 # An extension of get_qtr_schedules.py
 
-########## Currently starts in 2015 and goes for 3 quarters
+########## Currently starts in 2015 and goes for 12 quarters
 
 ########## Currently 'offset' has been replaced by 1, 
 ########## i.e. students cannot take "empty" quarters
@@ -10,7 +10,11 @@
 
 ########## Currently skips any course repeats, even potentially repeatable ones
 
-########## Currently only outputs [current qtr, max qtr, path]
+########## Currently only outputs are [current qtr, max qtr, path]
+
+########## Currently only using a course name-to-ID dictionary
+
+########## Currently uses max_courses_per_qtr = 6
 
 from datetime import datetime
 import re
@@ -19,13 +23,12 @@ import json
 import networkx as nx
 from itertools import chain, combinations
 
-# Load dictionaries:
-# Note that req_dict is given in terms of course names (not IDs), which is why we require
-# the course_name2id dictionary
-with open('course_dict.json','r') as f:
-	course_id2name = json.load(f)
+# Student can take no more than this number of courses in a quarter
+max_courses_per_qtr = 6
 
-course_name2id = dict((v,k) for k,v in course_id2name.items())
+# Load dictionaries:
+with open('coursename2id_dict.json', 'r') as f:
+	course_name2id = json.load(f)
 
 with open('req_dict.json','r') as f:
 	req_dict = json.load(f)
@@ -39,8 +42,6 @@ for line in sys.stdin:
 # delim1 separates quarters, delim2 separates course-class IDs within the same quarter
 delim1 = '|'
 delim2 = ','
-
-max_courses_per_qtr = 6
 
 path_split_pattern = r"[^|\t]+"
 
@@ -80,11 +81,11 @@ def checkConflicting(schedule1, schedule2): # Weekly schedule is a list of tuple
 	# If all for-loops completed and still no conflicting blocks,
 	return False
 
-def searchPath(Path, startyear, t, T):
-	# step = Path.split('|')[-1] # The step (quarter schedule) that was taken to get here
+def searchPath(startyear, t, T, branch_id, Path):
+	step = Path.split('|')[-1] # The step (quarter schedule) that was taken to get here
 
 	# Print the current Path:
-	print('\t'*t + "t:" + str(t) + "\tT:" + str(T) + "\tpathway:" + Path)
+	print("t:" + str(t) + "\tT:" + str(T) + "\tbranch_id:" + branch_id + "\tstep:" + step + "\tpathway:" + Path)
 	#print('\t'*t + "added:" + step + "\tpathway:" + Path + "\tt:" + str(t) + "\tT:" + str(T))
 
 	# If this is the final quarter, end this recursion branch
@@ -155,25 +156,32 @@ def searchPath(Path, startyear, t, T):
 			G.add_node(cc_id)
 
 			# Loop through all prev. courses;
-			# Add edge between current course and any course with which it DOESN'T conflict
+			# Add edge between current course and any course with which it DOESN'T conflict,
+			# and with which it does NOT have the same course ID
 			for cc_id0 in cc_schedules.keys():
-				if not checkConflicting(cc_schedules[cc_id0], schedule):
+				if not checkConflicting(cc_schedules[cc_id0], schedule) and (course_id != cc_id0.split('-')[0]):
 					G.add_edge(cc_id0, cc_id)
 
-		#print("Nodes:" + str(len(G)))
-
+		# Each clique represents a set of non-conflicting courses
 		clique_list = list(nx.find_cliques(G))
 
-		# For each clique (each possible student schedule)
+		# Iterate over each possible student schedule by the following:
+		step_id = 0 # First set step_id counter
+
+		# For each clique (each possible student schedule):
 		for i in range(len(clique_list)):
 			offset = (0, 1)[i > 0] # To avoid printing multiple null sets
+			# For each combination of up to 'max' courses within the clique:
 			for z in chain.from_iterable(combinations(clique_list[i], r) for r in range(1,max_courses_per_qtr)): # instead of range(len(clique_list[0]+1))
 				step_next = delim2.join(list(z))
 				Path_next = Path + delim1 + step_next
 
 				# Recurse!
-				searchPath(Path_next, startyear, t+1, T)
+				searchPath(startyear, t+1, T, branch_id + '.' + str(step_id), Path_next)
 
-# Run the recusive function
-searchPath('', 2015, 0, 3)
+				# Update step_id counter
+				step_id = step_id + 1
+
+# Run the recursive function
+searchPath(2015, 0, 12, '', '')
 
