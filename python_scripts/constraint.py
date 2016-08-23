@@ -4,10 +4,13 @@
 # - 'And': extension of 'Takes'; satisfied if ALL of its components have been taken
 # - 'Or': extension of 'Takes'; satisfied if ANY of its components have been taken
 
+import json
+
 class Takes(object):
 
 	def __init__(self, course): # course is formatted as string
 		self.type = 'simple'
+		self.constraints = course
 		self.course = course
 
 	def is_satisfied(self, sched):
@@ -33,53 +36,39 @@ class Or(object):
 	def is_satisfied(self, sched):
 		return(any(constraint.is_satisfied(sched) for constraint in self.constraints))
 
-# Input is the JSON output of format_reqs_json.py, which is used upon a file denoting
-# the degree requirements.
-# Output is a Constraint-class object.
-def parse_course_reqs(lines):
-	for line in lines:
-		entry = line.strip()
-		reqs_this_level = []
 
-		# If the entry is not denoting a start- or end-bracket
-		if entry not in ['AND{','OR{','}']:
-			reqs_this_level.append(entry)
+# Wrapper function for make_constraint_recurse.
+# Takes a filename for a .txt file representing a set of degree requirements,
+# and returns a Constraint class object that represents those degree requirements
+def make_constraint(filename):
+	with open(filename, 'r') as f:
+		reqs = json.load(f)
 
-		elif entry == 'AND{':
-			reqs_this_level = 
+	return(make_constraint_recurse(reqs))
 
-		elif entry == 'OR{':
+# Recursive function to return a (possibly nested) Constraint class object based
+# on a (possibly nested) dict
+def make_constraint_recurse(branch):
+	for key in branch.keys(): # There should only be one key per dictionary/branch
+		val = branch[key]
 
-		else entry == '}':
-			return((Takes(x)) for x in courses_this_level)
+		# Base case: if key is 'Takes', then just return 'Takes' constraint object
+		if key == 'Takes':
+			return(Takes(val))
 
-	# If somehow the loop ends before the function can return anything,
-	# then there were too few end-brackets
-	quit('More start-brackets than end-brackets in file denoting degree requirements')
+		# Otherwise, recurse!
+		else:
 
+			# Get list of constraint objects from recursion upon this branch
+			constraint_list = []
+			for d in val:
+				constraint_list.append(make_constraint_recurse(d))
 
-
-
-# Test those classes
-# math = 'Math'
-# physics = 'Physics'
-# french = 'French'
-
-# math_reqs = And(Takes(math), Takes(physics))
-# complex_reqs = And(Takes(math), Or(Takes(physics), Takes(french)) )
-
-# sched1 = [math, physics] # should satisfy both sets of reqs
-# sched2 = [math, french] # should satisfy complex_reqs, but not math_reqs
-# sched3 = [french, physics] # should satisfy neither
-
-# print(math_reqs.is_satisfied(sched1))
-# print(complex_reqs.is_satisfied(sched1))
-
-# print(math_reqs.is_satisfied(sched2))
-# print(complex_reqs.is_satisfied(sched2))
-
-# print(math_reqs.is_satisfied(sched3))
-# print(complex_reqs.is_satisfied(sched3))
-
-
+			# Then determine what type of constraint, and return
+			if key == 'And':
+				return(And(*constraint_list))
+			elif key == 'Or':
+				return(Or(*constraint_list))
+			else:
+				quit("Error: Unexpected key not in ('Takes','And','Or')")
 

@@ -23,8 +23,8 @@ import re
 import sys
 import json
 import networkx as nx
+import constraint as c
 from itertools import chain, combinations
-from pprint import pprint
 
 # Student can take no more than this number of courses in a quarter
 max_courses_per_qtr = 6
@@ -47,6 +47,11 @@ for line in sys.stdin:
 	else:
 		allcourses_by_term[term_id] = [line]
 
+# Create Constraint object to represent degree requirements, based on filename (sys.argv[1])
+printDegreeCompletion = False
+if len(sys.argv) > 1:
+	degree_reqs = c.make_constraint(sys.argv[1])
+	printDegreeCompletion = True
 
 # Delimiters to represent pathways 
 # delim1 separates quarters, delim2 separates course-class IDs within the same quarter
@@ -95,15 +100,20 @@ def searchPath(startyear, t, T, branch_id, Path):
 	step = Path.split('|')[-1] # The step (quarter schedule) that was taken to get here
 
 	# Print the current Path:
-	print("t:" + str(t) + "\tT:" + str(T) + "\tbranch_id:" + branch_id + "\tstep:" + step + "\tpathway:" + Path)
-	#print('\t'*t + "added:" + step + "\tpathway:" + Path + "\tt:" + str(t) + "\tT:" + str(T))
+	print("t:" + str(t) + "\tT:" + str(T) + "\tbranch_id:" + branch_id + "\tstep:" + step + "\tpathway:" + Path, end='\t')
 
-	# If this is the final quarter, end this recursion branch
+	# If this is the final quarter, end this recursion branch (AFTER checking degree completion)
 	if t == T:
-		pass
+		if printDegreeCompletion:
+			prev_cc_id = re.findall(path_split_pattern, Path)
+			prev_courses = [i.split('-')[0] for i in prev_cc_id]
+			print(degree_reqs.is_satisfied(prev_courses))
+		else:
+			print()
 	
 	# Otherwise, run the next recursion
 	else:
+		print()
 
 		prev_cc_id = re.findall(path_split_pattern, Path)
 		prev_courses = [i.split('-')[0] for i in prev_cc_id]
