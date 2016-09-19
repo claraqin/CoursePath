@@ -5,6 +5,8 @@
 import json
 import sys
 
+isMissingReference = False
+
 with open('../dict/course_name2id_dict.json', 'r') as f:
 	course_name2id = json.load(f)
 
@@ -15,14 +17,18 @@ for line in sys.stdin:
 
 	try:
 		key = course_name2id[entry['code']]
-		prereqs = entry['prereq']
-		coreqs = entry['coreq']
+		prereqs = [course_name2id[prereq] for prereq in entry['prereq']]
+		coreqs = [course_name2id[coreq] for coreq in entry['coreq']]
 
 		req_dict[key] = [prereqs, coreqs]
 
 	except KeyError:
 		print('Warning: Course name-to-ID dict was not made with reference to ' + entry['code'])
-		pass
+		isMissingReference = True
+
+if isMissingReference:
+	print('Note: Usually the name-to-ID dict will only fail to make a reference to a course if it was not offered between 2011 and 2016')
+	print('Edit: Or if your input prereqs.json represents its requirements as nested dicts (i.e. to account for "and"/"or" structure)')
 
 with open('../dict/req_dict.json', 'w') as f:
 	json.dump(req_dict, f)

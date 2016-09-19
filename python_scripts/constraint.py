@@ -37,18 +37,16 @@ class Or(object):
 		return(any(constraint.is_satisfied(sched) for constraint in self.constraints))
 
 
-# Wrapper function for make_constraint_recurse.
-# Takes a filename for a .txt file representing a set of degree requirements,
-# and returns a Constraint class object that represents those degree requirements
-def make_constraint(filename):
-	with open(filename, 'r') as f:
-		reqs = json.load(f)
-
-	return(make_constraint_recurse(reqs))
+# # Wrapper function for make_constraint.
+# # Takes a JSON file representing a set of degree requirements (or course 
+# # prerequisites) and returns a Constraint class object that represents those requirements
+# def make_constraint_from_JSON(file):
+# 	reqs = json.load(file)
+# 	return(make_constraint(reqs))
 
 # Recursive function to return a (possibly nested) Constraint class object based
-# on a (possibly nested) dict
-def make_constraint_recurse(branch):
+# on a (possibly nested) dict or branch thereof.
+def make_constraint(branch):
 	for key in branch.keys(): # There should only be one key per dictionary/branch
 		val = branch[key]
 
@@ -62,7 +60,7 @@ def make_constraint_recurse(branch):
 			# Get list of constraint objects from recursion upon this branch
 			constraint_list = []
 			for d in val:
-				constraint_list.append(make_constraint_recurse(d))
+				constraint_list.append(make_constraint(d))
 
 			# Then determine what type of constraint, and return
 			if key == 'And':

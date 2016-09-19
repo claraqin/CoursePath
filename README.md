@@ -1,4 +1,4 @@
-# Stanford Course Pathways Project
+# Stanford CoursePath Project
 
 
 ## Premise ##

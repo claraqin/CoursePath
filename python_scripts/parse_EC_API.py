@@ -145,7 +145,7 @@ if __name__ == '__main__':
 
 					print(start_time, end='\t')
 					print(end_time, end='\t')
-					print(days)
+					print(days.replace('||','|'))
 
 	#elapsed_time = time.time() - init_time
 	#print(">> Checking done. Time spent = {:.01f} s ({:.01f} hrs)".format(elapsed_time, elapsed_time/3600))
