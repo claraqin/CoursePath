@@ -11442,7 +11442,7 @@
 {"code": "PHYSICS 24", "prereq": {}, "coreq": {"And": [{"Or": [{"Takes": "PHYSICS 23"}]}]}, "recommend": {}}
 {"code": "PHYSICS 25", "prereq": {"And": [{"Or": [{"Takes": "PHYSICS 23"}, {"Takes": "PHYSICS 23S"}]}]}, "coreq": {}, "recommend": {}}
 {"code": "PHYSICS 26", "prereq": {}, "coreq": {"And": [{"Or": [{"Takes": "PHYSICS 25"}]}]}, "recommend": {}}
-{"code": "PHYSICS 41", "prereq": {"And": [{"Or": [{"Takes": "PHYSICS 41A"}]}]}, "coreq": {}, "recommend": {}}
+{"code": "PHYSICS 41", "prereq": {}, "coreq": {"Takes": "PHYSICS 41A"}, "recommend": {}}
 {"code": "PHYSICS 41A", "prereq": {}, "coreq": {"And": [{"Takes": "PHYSICS 41"}]}, "recommend": {}}
 {"code": "PHYSICS 42", "prereq": {}, "coreq": {"And": [{"Or": [{"Takes": "PHYSICS 41"}]}]}, "recommend": {}}
 {"code": "PHYSICS 43", "prereq": {"And": [{"Or": [{"Takes": "PHYSICS 41"}]}]}, "coreq": {}, "recommend": {"And": [{"Or": [{"Takes": "MATH 52"}, {"Takes": "CME 102"}]}]}}

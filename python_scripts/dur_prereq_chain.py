@@ -26,14 +26,21 @@ with open('../dict/course_id2name_dict.json', 'r') as f:
 with open('../dict/req_dict_nested.json', 'r') as f:
 	req_dict = json.load(f)
 
-# Get course name of interest from sys.argv
-if len(sys.argv) > 1:
+with open('../ec_data/Course_terms.json', 'r') as f:
+	term_dict = json.load(f)
+
+
+# Get course name of interest and end-term from sys.argv
+if len(sys.argv) > 3:
 	coursename = sys.argv[1]
 	courseid = course_name2id[coursename]
-	if len(sys.argv) > 2:
+	endterm = sys.argv[2]
+	maxlen = sys.argv[3]
+
+	if len(sys.argv) > 4:
 		verbose = True
 else:
-	quit('Error: Must specify course name of interest as arg')
+	quit('Error: Must specify course name of interest as arg1, end-term as arg2, max chain length as arg3')
 
 def nested_replace(input_d):
 	copy_d = input_d.copy()
@@ -46,6 +53,7 @@ def nested_replace(input_d):
 
 # Recursive function to keep counting courses in prereq chain:
 # Takes a str representing a course ID, returns an integer
+# PERHAPS RENAME TO "def valid_courseset" which returns recursive step's courseset if n < maxlen
 def len_chain(courseid, n=0, tabs=0, ignore_coreqs=False):
 	try:
 		prereqs = req_dict[courseid][0] # '0' specifies prereqs; 
@@ -73,7 +81,7 @@ def len_chain(courseid, n=0, tabs=0, ignore_coreqs=False):
 				print('\t' * tabs + 'Prereqs: ' + str(nested_replace(prereqs)))
 				print('\t' * tabs + 'n: ' + str(n))
 				print('')
-				
+
 			return max([len_chain2(prereqs, n, tabs), 0])
 
 	except RuntimeError:

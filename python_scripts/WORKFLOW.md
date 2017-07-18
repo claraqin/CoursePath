@@ -37,7 +37,7 @@ python format_reqs_json.py ../degree_reqs/geophysics/reqs_geophysics0.txt ../deg
 # To get all relevant courses for a degree program (including prerequisites),
 # run a manually-typed .txt file of degree requirements (such as
 # reqs_geophysics0.txt) through relevant_courses.py:
-python relevant_courses.py ../degree_reqs/pre/reqs_geophysics0.txt ../ec_data/relevant_courses/rc_geophysics.txt
+python relevant_courses.py ../degree_reqs/geophysics/reqs_geophysics0.txt ../ec_data/relevant_courses/rc_geophysics.txt
 
 # To parse the JSON file representing degree requirements into a Constraint-
 # class object
@@ -64,5 +64,12 @@ Python len_prereq_chain.py 'BIO 41' d
 Python len_prereq_chain.py 'ECON 52' d
 Python len_prereq_chain.py 'MATH 104' d
 
-# Still in development: get minimum prereq chain length of a degree program
+# Get minimum prereq chain length of a degree program (or any other JSON representing constraints)
 python len_prereq_chain_fromjson.py '../degree_reqs/ecoevo/reqs_ecoevo_sub.json'
+
+# Used R script to create course term_id lookup table
+# Hard-coded as “ec_data/Course_terms.txt”
+Rscript ../create_course_term_lookup.R
+
+# Convert the course term_id lookup table into JSON file
+cat ../ec_data/Course_terms.txt | python course_terms_txt2json.py ../ec_data/Course_terms.json

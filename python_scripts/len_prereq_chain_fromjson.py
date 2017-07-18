@@ -15,6 +15,7 @@ import sys
 import json
 
 verbose = False
+key_errors = []
 
 # Load dictionaries:
 with open('../dict/course_name2id_dict.json', 'r') as f:
@@ -26,10 +27,10 @@ with open('../dict/course_id2name_dict.json', 'r') as f:
 with open('../dict/req_dict_nested.json', 'r') as f:
 	req_dict = json.load(f)
 
-# Get course name of interest from sys.argv
+
 if len(sys.argv) > 1:
-	coursename = sys.argv[1]
-	courseid = course_name2id[coursename]
+	with open(sys.argv[1], 'r') as f:
+		input_json = json.load(f)
 	if len(sys.argv) > 2:
 		verbose = True
 else:
@@ -122,7 +123,7 @@ def len_chain2(branch, n=0, tabs=0, ignore_next_coreqs=False):
 		quit("Error: Input to len_chain2() was not a dict")
 
 
-print(len_chain(courseid))
+print(len_chain2(input_json))
 
 if verbose and len(key_errors) > 0:
 	print('Warning: the following courses did not appear in the prerequisite dictionary, perhaps because they were never offered:')
